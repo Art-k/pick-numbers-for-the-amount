@@ -33,7 +33,7 @@ type Number struct {
 type OutNumber struct {
 	Value    int    `json:"value"`
 	NumberId string `json:"id"`
-	Selected bool   `json:"bool"`
+	Selected bool   `json:"selected"`
 }
 
 type IncomingHTTPRequest struct {
