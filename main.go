@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"fmt"
 	"github.com/gorilla/mux"
-	lim "github.com/korovkin/limiter"
 	"log"
 	"math"
 	"net/http"
@@ -160,7 +159,7 @@ func getAnswer(id IncomingHTTPRequest) []bool {
 	t1 := time.Now()
 	count := uint64(PossiblePlaces(len(id.Numbers)))
 
-	limit := lim.NewConcurrencyLimiter(8)
+	//limit := lim.NewConcurrencyLimiter(8)
 
 	var am int
 	var fromBottom int
@@ -197,8 +196,6 @@ func getAnswer(id IncomingHTTPRequest) []bool {
 			break
 		}
 	}
-
-	limit.Wait()
 
 	fmt.Println("Final Tooks : ", time.Now().Sub(t1))
 	fmt.Println("exitByCondition", exitByCondition)
