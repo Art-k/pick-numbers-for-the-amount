@@ -101,7 +101,7 @@ func PrepareResponse(id IncomingHTTPRequest, comb []bool) (out OutgoingHTTPRespo
 	return out
 }
 
-func CheckIncomingData(id IncomingHTTPRequest, w http.ResponseWriter) bool {
+func CheckIncomingData(id IncomingHTTPRequest, w http.ResponseWriter) (ans bool) {
 	// Check if all element is lower than amount
 	response := false
 	for _, number := range id.Numbers {
@@ -110,7 +110,7 @@ func CheckIncomingData(id IncomingHTTPRequest, w http.ResponseWriter) bool {
 		}
 	}
 	if !response {
-		ResponseBadRequest(w, nil, "{\"message\":\"elements is greater than amount\"}")
+		ResponseBadRequest(w, nil, "all elements are greater than amount")
 		return false
 	}
 
@@ -278,9 +278,13 @@ func ResponseOK(w http.ResponseWriter, addedRecordString []byte) {
 func ResponseBadRequest(w http.ResponseWriter, err error, message string) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("content-type", "application/json")
-	errorString := "{\"error_message\":\"" + err.Error() + "\",\"message\":\"" + message + "\"}"
+	var errorString string
+	if err != nil {
+		errorString = "{\"error_message\":\"" + err.Error() + "\",\"message\":\"" + message + "\"}"
+	} else {
+		errorString = "{\"error_message\":\"\",\"message\":\"" + message + "\"}"
+	}
 	http.Error(w, errorString, http.StatusBadRequest)
-	return
 }
 
 func ResponseNotFound(w http.ResponseWriter) {
