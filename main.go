@@ -54,22 +54,7 @@ func main() {
 	r := mux.NewRouter()
 	r.HandleFunc("/", TryToPickNumbers)
 
-	//dirs = make(chan bool)
-	//
-	//go func() {
-	//	for {
-	//		select {
-	//		case dir := <-dirs:
-	//			if dir {
-	//				processCount += 1
-	//			} else {
-	//				processCount -= 1
-	//			}
-	//		}
-	//	}
-	//}()
-
-	fmt.Printf("Starting Server to HANDLE programmatic.tech back end\nPort : " + Port + "\nAPI revision " + Version + "\n\n")
+	fmt.Printf("Starting Server to HANDLE pna.maxtv.tech back end\nPort : " + Port + "\nAPI revision " + Version + "\n\n")
 	if err := http.ListenAndServe(":"+Port, r); err != nil {
 		log.Fatal(err, "ERROR")
 	}
@@ -85,29 +70,74 @@ func TryToPickNumbers(w http.ResponseWriter, r *http.Request) {
 			return
 		}
 		//sort.Sort(Numbers(incomingData.Numbers))
+		//PrintIncomingData(incomingData)
 
-		PrintIncomingData(incomingData)
-
-		FoundCombination := getAnswer(incomingData)
-		var outgoingData OutgoingHTTPResponse
-		for i := 0; i < len(incomingData.Numbers); i++ {
-			outgoingData.Numbers = append(outgoingData.Numbers, OutNumber{
-				Value:    incomingData.Numbers[i].Value,
-				NumberId: incomingData.Numbers[i].NumberId,
-				Selected: FoundCombination[i],
-			})
-			if FoundCombination[i] {
-				outgoingData.Amount += incomingData.Numbers[i].Value
-			}
+		if !CheckIncomingData(incomingData, w) {
+			return
 		}
 
-		response, _ := json.Marshal(outgoingData)
+		FoundCombination := getAnswer(incomingData)
+		response, _ := json.Marshal(PrepareResponse(incomingData, FoundCombination))
+
 		ResponseOK(w, response)
 		return
 	default:
 		ResponseBadRequest(w, nil, "{\"message\":\"method not found\"}")
 		return
 	}
+}
+
+func PrepareResponse(id IncomingHTTPRequest, comb []bool) (out OutgoingHTTPResponse) {
+	for i := 0; i < len(id.Numbers); i++ {
+		out.Numbers = append(out.Numbers, OutNumber{
+			Value:    id.Numbers[i].Value,
+			NumberId: id.Numbers[i].NumberId,
+			Selected: comb[i],
+		})
+		if comb[i] {
+			out.Amount += id.Numbers[i].Value
+		}
+	}
+	return out
+}
+
+func CheckIncomingData(id IncomingHTTPRequest, w http.ResponseWriter) bool {
+	// Check if all element is lower than amount
+	response := false
+	for _, number := range id.Numbers {
+		if number.Value < id.Amount {
+			response = true
+		}
+	}
+	if !response {
+		ResponseBadRequest(w, nil, "{\"message\":\"elements is greater than amount\"}")
+		return false
+	}
+
+	// check if sum of all element is greater than amount
+	response = false
+	var am uint64
+
+	for _, number := range id.Numbers {
+		am += uint64(number.Value)
+	}
+
+	if am < uint64(id.Amount) {
+		ResponseBadRequest(w, nil, "{\"message\":\"amount can't be reached\"}")
+		return false
+	}
+
+	if am == uint64(id.Amount) {
+		comb := make([]bool, len(id.Numbers))
+		for _, item := range comb {
+			item = !item
+		}
+		response, _ := json.Marshal(PrepareResponse(id, comb))
+		ResponseOK(w, response)
+		return false
+	}
+
+	return true
 }
 
 func bin2dec(ar []bool) uint64 {
