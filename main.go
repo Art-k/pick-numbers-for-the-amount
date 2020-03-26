@@ -278,7 +278,7 @@ func ResponseOK(w http.ResponseWriter, addedRecordString []byte) {
 func ResponseBadRequest(w http.ResponseWriter, err error, message string) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("content-type", "application/json")
-	w.WriteHeader(http.StatusBadRequest)
+	w.WriteHeader(http.StatusOK)
 	var errorString string
 	if err != nil {
 		errorString = "{\"error_message\":\"" + err.Error() + "\",\"message\":\"" + message + "\"}"
