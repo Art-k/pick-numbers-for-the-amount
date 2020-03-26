@@ -110,7 +110,7 @@ func CheckIncomingData(id IncomingHTTPRequest, w http.ResponseWriter) (ans bool)
 		}
 	}
 	if !response {
-		ResponseBadRequest(w, nil, "all elements are greater than amount")
+		ResponseBadRequest(w, nil, "All numbers are greater than amount")
 		return false
 	}
 
@@ -278,13 +278,17 @@ func ResponseOK(w http.ResponseWriter, addedRecordString []byte) {
 func ResponseBadRequest(w http.ResponseWriter, err error, message string) {
 	w.Header().Set("Access-Control-Allow-Origin", "*")
 	w.Header().Set("content-type", "application/json")
+	w.WriteHeader(http.StatusBadRequest)
 	var errorString string
 	if err != nil {
 		errorString = "{\"error_message\":\"" + err.Error() + "\",\"message\":\"" + message + "\"}"
 	} else {
 		errorString = "{\"error_message\":\"\",\"message\":\"" + message + "\"}"
 	}
-	http.Error(w, errorString, http.StatusBadRequest)
+	n, _ := fmt.Fprintf(w, string(errorString))
+	fmt.Println("Response was sent ", n, " bytes")
+	return
+	//http.Error(w, errorString, http.StatusBadRequest)
 }
 
 func ResponseNotFound(w http.ResponseWriter) {
